@@ -1,0 +1,14 @@
+{
+  "target": "i-06d4cae0fcd3c063c",
+  "total_requests": 105798,
+  "failed_requests": 1353,
+  "failed_rate_percent": 1.279,
+  "detect_seconds": 13.4,
+  "first_fail_after_stop_seconds": 0.0,
+  "last_fail_after_stop_seconds": 14.6,
+  "recover_seconds": 21.4,
+  "alarm_seconds": {
+    "approval-loadtest-P1-5xx": 147.8,
+    "approval-loadtest-P1-unhealthy-host": 153.4
+  }
+}

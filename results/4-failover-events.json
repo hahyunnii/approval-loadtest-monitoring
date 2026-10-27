@@ -1,0 +1,4 @@
+{"target": "i-06d4cae0fcd3c063c", "target_name": "approval-app-2",
+ "stopped_ms": 1793089186281, "detected_ms": 1793089199703,
+ "started_ms": 1793089367462, "recovered_ms": 1793089388854,
+ "alarms": {"approval-loadtest-P1-5xx": 1793089334050, "approval-loadtest-P1-unhealthy-host": 1793089339655}}
