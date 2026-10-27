@@ -1,0 +1,54 @@
+#!/bin/bash
+# 앱 서버 초기화 스크립트 (첫 부팅 때 1번 실행)
+# jar md5: ${jar_md5}
+set -euxo pipefail
+
+# 1. Java 21 + CloudWatch Agent 설치
+dnf install -y java-21-amazon-corretto-headless amazon-cloudwatch-agent
+
+# 2. 앱 jar 받기
+mkdir -p /opt/app
+aws s3 cp "s3://${bucket}/${jar_key}" /opt/app/app.jar --region ${region}
+
+# 3. DB 접속 정보 (systemd가 환경변수로 넣어줌)
+cat > /etc/approval-app.env <<'EOF'
+DB_URL=${db_url}
+DB_USER=${db_user}
+DB_PASSWORD=${db_password}
+SERVER_NAME=${server_name}
+EOF
+chmod 600 /etc/approval-app.env
+
+# 4. 앱을 서비스로 등록 (서버가 재시작돼도 자동 실행)
+cat > /etc/systemd/system/approval-app.service <<'EOF'
+[Unit]
+Description=Approval API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=/etc/approval-app.env
+ExecStart=/usr/bin/java -Xms512m -Xmx1024m -jar /opt/app/app.jar
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable --now approval-app
+
+# 5. CloudWatch Agent: 메모리 사용률 수집 (EC2 기본 지표에는 메모리가 없음)
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'EOF'
+{
+  "agent": { "metrics_collection_interval": 60, "omit_hostname": true },
+  "metrics": {
+    "append_dimensions": { "InstanceId": "$${aws:InstanceId}" },
+    "metrics_collected": {
+      "mem": { "measurement": ["mem_used_percent"] }
+    }
+  }
+}
+EOF
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json

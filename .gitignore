@@ -1,0 +1,16 @@
+# Terraform: state 파일에는 DB 비밀번호가 평문으로 남으니 절대 커밋하지 않기
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+terraform.tfvars
+
+# 빌드 결과물, 부하 발생기에서 만든 임시 리포트 폴더 (최종 결과는 results/ 에 올림)
+app/target/
+reports/
+
+# 키·OS 파일
+*.pem
+.DS_Store
+Thumbs.db

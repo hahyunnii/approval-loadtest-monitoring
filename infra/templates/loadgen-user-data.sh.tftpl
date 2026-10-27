@@ -1,0 +1,32 @@
+#!/bin/bash
+# 부하 발생기 초기화 스크립트 (첫 부팅 때 1번 실행)
+# scripts md5: ${scripts_md5}
+set -euxo pipefail
+
+# 1. MySQL 클라이언트 (데이터 넣기, 인덱스 만들기용)
+dnf install -y mariadb105
+
+# 2. k6 설치
+curl -sSL https://github.com/grafana/k6/releases/download/v0.52.0/k6-v0.52.0-linux-amd64.tar.gz | tar xz -C /tmp
+install -m 755 /tmp/k6-v0.52.0-linux-amd64/k6 /usr/local/bin/k6
+
+# 3. 부하 테스트 스크립트 받기
+mkdir -p /opt/loadtest/reports
+aws s3 cp "s3://${bucket}/loadtest/" /opt/loadtest/ --recursive --region ${region}
+chmod 755 /opt/loadtest/*.sh
+chmod 777 /opt/loadtest/reports
+
+# 4. 접속 정보
+cat > /opt/loadtest/env <<'EOF'
+BASE_URL=http://${alb_dns}
+DB_HOST=${db_host}
+DB_NAME=${db_name}
+DB_USER=${db_user}
+DB_PASSWORD=${db_password}
+BUCKET=${bucket}
+TG_ARN=${tg_arn}
+AWS_DEFAULT_REGION=${region}
+EOF
+chmod 644 /opt/loadtest/env
+
+touch /opt/loadtest/READY

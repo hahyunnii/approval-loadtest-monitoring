@@ -1,0 +1,14 @@
+# 이 파일을 terraform.tfvars 로 복사해서 쓰세요.
+#   PowerShell: Copy-Item terraform.tfvars.example terraform.tfvars
+
+# 내 PC의 공인 IP. PowerShell에서 확인: Invoke-RestMethod ifconfig.me
+my_ip = "1.2.3.4"
+
+# 수평 확장: 앱 서버 개수 (1~8단계는 1, 9단계에서 3으로 바꾸고 terraform apply)
+app_count = 1
+
+# 수직 확장: RDS 사양 (db.t3.micro → db.t3.small 로 바꾸고 terraform apply)
+db_instance_class = "db.t3.micro"
+
+# 알람 메일 (선택). 적으면 apply 후 "AWS Notification - Subscription Confirmation" 메일의 링크를 눌러야 받기 시작함
+# alarm_email = "me@example.com"
